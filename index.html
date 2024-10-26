@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Animation</title>
+    <!-- Inclure la bibliothèque p5.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: black; /* Couleur de fond */
+        }
+        canvas {
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        let words = [];
+        let allDispersed = false;
+
+        function setup() {
+            createCanvas(800, 600);
+            background(0);
+            textAlign(CENTER, CENTER);
+            createThickHeartWithText();
+        }
+
+        function draw() {
+            background(0);
+
+            if (!allDispersed) {
+                for (let word of words) {
+                    word.update();
+                    word.draw();
+                }
+                
+                // Vérifier si tous les mots ont été dispersés
+                checkAllDispersed();
+            }
+        }
+
+        function mouseMoved() {
+            if (!allDispersed) {
+                for (let word of words) {
+                    if (word.contains(mouseX, mouseY) && !word.moving) {
+                        word.flyAway();
+                    }
+                }
+            }
+        }
+
+        function createThickHeartWithText() {
+            let centerX = width / 2;
+            let centerY = height / 2;
+            
+            // Dessiner un contour de cœur avec 20% de densité en plus
+            for (let t = -PI; t < PI; t += 0.03) {
+                for (let r = 18; r <= 60; r += 4) {
+                    let x = r * pow(sin(t), 3) * 10 + centerX;
+                    let y = -(13 * cos(t) - 5 * cos(2 * t) - 2 * cos(3 * t) - cos(4 * t)) * (r / 2) + centerY;
+                    for (let i = 0; i < 3; i++) {
+                        addTextInsideHeart(x + random(-5, 5), y + random(-5, 5));
+                    }
+                }
+            }
+        }
+
+        function addTextInsideHeart(x, y) {
+            let textArray = ["I", "LOVE", "YOU", "PETE"];
+            let word = textArray[int(random(textArray.length))];
+            words.push(new SpikyHeartWord(word, x, y));
+        }
+
+        function checkAllDispersed() {
+            let dispersed = true;
+            for (let word of words) {
+                if (!word.isDispersed()) {
+                    dispersed = false;
+                    break;
+                }
+            }
+            if (dispersed) {
+                allDispersed = true;
+            }
+        }
+
+        // Classe représentant un mot "I LOVE YOU PETE"
+        class SpikyHeartWord {
+            constructor(word, x, y) {
+                this.word = word;
+                this.x = x;
+                this.y = y;
+                this.visible = true;
+                this.moving = false;
+                this.speedX = 0;
+                this.speedY = 0;
+            }
+
+            draw() {
+                if (this.visible) {
+                    fill(173, 216, 230); // Texte en bleu clair (RGB pour Light Blue)
+                    textSize(10);
+                    text(this.word, this.x, this.y);
+                }
+            }
+
+            update() {
+                if (this.moving) {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    
+                    // Si le mot sort de l'écran, on arrête de le dessiner
+                    if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
+                        this.visible = false;
+                    }
+                }
+            }
+
+            flyAway() {
+                this.moving = true;
+                this.speedX = random(-6, 6);
+                this.speedY = random(-6, 6);
+            }
+
+            contains(mouseX, mouseY) {
+                let wordWidth = textWidth(this.word);
+                let wordHeight = 10;
+                return this.visible && mouseX >= this.x - wordWidth / 2 && mouseX <= this.x + wordWidth / 2 && mouseY >= this.y - wordHeight / 2 && mouseY <= this.y + wordHeight / 2;
+            }
+
+            isDispersed() {
+                return !this.visible;
+            }
+        }
+    </script>
+</body>
+</html>
